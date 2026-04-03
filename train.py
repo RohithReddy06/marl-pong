@@ -23,8 +23,8 @@ def train():
         agent.load_state_dict(torch.load(checkpoint_path, map_location=device))
 
     # Hyperparameters
-    steps_per_rollout = 256
-    total_iterations = 3000
+    steps_per_rollout = 1024
+    total_iterations = 15000
     
     # Entropy Decay Config (Forces 'Certainty' over time)
     START_ENTROPY = 0.05

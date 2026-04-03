@@ -68,22 +68,22 @@ class PongDoublesEnv(ParallelEnv):
         midpoint = 200
 
         # 3. Collision Logic (Kept Zone Defense)
-        if self.ball_pos[0] < 15 and self.ball_vel[0] < 0:
+        if self.ball_pos[0] <= 20 and self.ball_vel[0] < 0:
             for p in ["p0", "p1"]:
-                if self.p_y[p] < self.ball_pos[1] < self.p_y[p] + 60:
+                if self.ball_pos[1] + 10 >= self.p_y[p] and self.ball_pos[1] <= self.p_y[p] + 60:
                     self.ball_vel[0] *= -1.05
-                    self.ball_pos[0] = 15
+                    self.ball_pos[0] = 20
                     is_top_agent = (p == "p0")
                     is_ball_top = (self.ball_pos[1] < midpoint)
                     # HIGH REWARD for hit
                     rewards[p] += 2.0 if is_top_agent == is_ball_top else -0.5
                     break
 
-        elif self.ball_pos[0] > 585 and self.ball_vel[0] > 0:
+        elif self.ball_pos[0] >= 570 and self.ball_vel[0] > 0:
             for p in ["p2", "p3"]:
-                if self.p_y[p] < self.ball_pos[1] < self.p_y[p] + 60:
+                if self.ball_pos[1] + 10 >= self.p_y[p] and self.ball_pos[1] <= self.p_y[p] + 60:
                     self.ball_vel[0] *= -1.05
-                    self.ball_pos[0] = 585
+                    self.ball_pos[0] = 570
                     is_top_agent = (p == "p2")
                     is_ball_top = (self.ball_pos[1] < midpoint)
                     rewards[p] += 2.0 if is_top_agent == is_ball_top else -0.5
@@ -93,7 +93,7 @@ class PongDoublesEnv(ParallelEnv):
         if self.ball_pos[0] <= 0:
             rewards = {a: rewards[a] + (-2.0 if a in ["p0","p1"] else 2.0) for a in self.agents}
             term = True
-        elif self.ball_pos[0] >= 600:
+        elif self.ball_pos[0] >= 590:
             rewards = {a: rewards[a] + (2.0 if a in ["p0","p1"] else -2.0) for a in self.agents}
             term = True
         
