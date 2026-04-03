@@ -42,10 +42,16 @@ class PongDoublesEnv(ParallelEnv):
     def step(self, actions):
         rewards = {a: 0.0 for a in self.agents}
         
-        # 1. Update Paddles - Mvmt Penalties Removed
+        # 1. Update Paddles - Hard Mode Constraints
         for a, act in actions.items():
-            if act == 1: self.p_y[a] = max(0, self.p_y[a] - 10)
-            if act == 2: self.p_y[a] = min(340, self.p_y[a] + 10)
+            if act == 1: self.p_y[a] -= 10
+            if act == 2: self.p_y[a] += 10
+            
+            # Absolute physical barriers to prevent crossing into partner's zone
+            if a in ["p0", "p2"]:  # Top Agents
+                self.p_y[a] = max(0, min(140, self.p_y[a]))
+            else:                  # Bottom Agents
+                self.p_y[a] = max(200, min(340, self.p_y[a]))
             
             self.last_action[a] = act
         
@@ -97,10 +103,6 @@ class PongDoublesEnv(ParallelEnv):
                 is_top = a in ["p0", "p2"]
                 paddle_center = self.p_y[a] + 30
                 ball_y = self.ball_pos[1]
-                
-                # Penalty for crossing midpoint (Reduced)
-                if (is_top and paddle_center > midpoint) or (not is_top and paddle_center < midpoint):
-                    rewards[a] -= 0.01
                 
                 # Proximity Reward (Making the ball 'magnetic')
                 dist = abs(paddle_center - ball_y) / 400
