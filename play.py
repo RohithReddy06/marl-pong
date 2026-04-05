@@ -10,7 +10,11 @@ def play():
     agent = PPOAgent().to(device)
     
     try:
-        agent.load_state_dict(torch.load("pong_doubles_weights.pt", map_location=device))
+        checkpoint = torch.load("pong_doubles_weights.pt", map_location=device)
+        if isinstance(checkpoint, dict) and 'model_state' in checkpoint:
+            agent.load_state_dict(checkpoint['model_state'])
+        else:
+            agent.load_state_dict(checkpoint)
         print("Model loaded.")
     except:
         print("No weights found.")

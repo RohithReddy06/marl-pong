@@ -18,9 +18,19 @@ def train():
     checkpoint_path = "pong_doubles_weights.pt"
     
     # Auto-Resume Logic
+    start_iteration = 0
     if os.path.exists(checkpoint_path):
         print(f"Loading existing weights...")
-        agent.load_state_dict(torch.load(checkpoint_path, map_location=device))
+        checkpoint = torch.load(checkpoint_path, map_location=device)
+        # Check if new dictionary format or old raw format
+        if isinstance(checkpoint, dict) and 'model_state' in checkpoint:
+            agent.load_state_dict(checkpoint['model_state'])
+            optimizer.load_state_dict(checkpoint['optimizer_state'])
+            start_iteration = checkpoint['iteration'] + 1
+            if 'failed_scenarios' in checkpoint:
+                env.failed_scenarios = checkpoint['failed_scenarios']
+        else:
+            agent.load_state_dict(checkpoint)
 
     # Hyperparameters
     steps_per_rollout = 1024
@@ -34,7 +44,7 @@ def train():
     print(f"Training started. Weights save to {checkpoint_path} on exit.")
 
     try:
-        for iteration in range(total_iterations):
+        for iteration in range(start_iteration, total_iterations):
             # Calculate dynamic entropy coefficient (Linear Decay)
             # As iterations go up, randomness goes down.
             ent_coef = max(END_ENTROPY, START_ENTROPY - (iteration / 2000) * (START_ENTROPY - END_ENTROPY))
@@ -120,7 +130,13 @@ def train():
     except KeyboardInterrupt:
         print("\n[SIGINT] Manual Pause. Saving weights...")
 
-    torch.save(agent.state_dict(), checkpoint_path)
+    checkpoint_data = {
+        'model_state': agent.state_dict(),
+        'optimizer_state': optimizer.state_dict(),
+        'iteration': iteration if 'iteration' in locals() else start_iteration,
+        'failed_scenarios': env.failed_scenarios
+    }
+    torch.save(checkpoint_data, checkpoint_path)
     print("Done. Ready to Play.")
 
 if __name__ == "__main__":
