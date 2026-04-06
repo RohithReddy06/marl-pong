@@ -34,7 +34,7 @@ def train():
 
     # Hyperparameters
     steps_per_rollout = 1024
-    total_iterations = 15000
+    total_iterations = 21000
     
     # Entropy Decay Config (Forces 'Certainty' over time)
     START_ENTROPY = 0.05
